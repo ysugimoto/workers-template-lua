@@ -4,16 +4,20 @@ build:
 	docker run \
 		--rm \
 		-v ${PWD}:/src \
-		trzeci/emscripten:sdk-tag-1.38.32-64bit \
+		emscripten/emsdk:3.1.1 \
 		emcc -O2 \
 		-s WASM=1 \
-		-s EXTRA_EXPORTED_RUNTIME_METHODS='["cwrap", "setValue"]' \
+		-s EXPORTED_RUNTIME_METHODS='["cwrap", "setValue"]' \
 		-s ALLOW_MEMORY_GROWTH=1 \
 		-s DYNAMIC_EXECUTION=0 \
 		-s TEXTDECODER=1 \
 		-s MODULARIZE=1 \
-		-s ENVIRONMENT='web' \
-		-s EXPORT_NAME="emscripten" \
+		-s ENVIRONMENT=web \
+		-s EXPORT_ES6=1 \
+		-s EXPORT_NAME=emscripten \
+		-s FILESYSTEM=0 \
+		-s SINGLE_FILE=0 \
+		-s VERBOSE=0 \
 		--pre-js "./pre.js" \
-		-o ./build/module.js ./src/main.c
-	cp ./build/module.wasm ./dist/module.wasm
+		-o ./build/wasm-module.mjs \
+		./src/main.c

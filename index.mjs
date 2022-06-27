@@ -1,24 +1,27 @@
-import wasm from "./build/module.wasm";
-import emscripten from "./build/module.js";
+import emscripten from "./build/wasm-module.mjs";
+import module from "./build/wasm-module.wasm";
 
-let emscripten_module = new Promise((resolve, reject) => {
+const wasmModule = new Promise((resolve, reject) => {
   emscripten({
-    instantiateWasm(info, receive) {
-      const instance = new WebAssembly.Instance(wasm, info);
-      receive(instance);
+    instantiateWasm(info, receiveInstance) {
+      const instance = new WebAssembly.Instance(module, info);
+      receiveInstance(instance);
       return instance.exports;
     },
     locateFile(path, scriptDirectory) {
       return path;
     },
-  }).then(module => {
-    resolve(module);
-  });
-})
+  }).then(mod => {
+    resolve({
+      myFunction: mod.cwrap("myFunction", "string"),
+    });
+  }).catch(err => console.log(err));
+});
 
 export default {
   async fetch(request, env) {
-    const m = await emscripten_module;
-    return new Response("OK");
+    const wasm = await wasmModule;
+    const d = wasm.myFunction();
+    return new Response(d);
   }
 }

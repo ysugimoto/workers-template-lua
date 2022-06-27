@@ -2,7 +2,7 @@
 
 // build/wasm-module.mjs
 var emscripten = (() => {
-  var _scriptDir = {}.url;
+  var _scriptDir = import.meta.url;
   return function(emscripten2) {
     emscripten2 = emscripten2 || {};
     var Module = typeof emscripten2 !== "undefined" ? emscripten2 : {};
@@ -120,8 +120,8 @@ var emscripten = (() => {
       }
       typeSection[1] = typeSection.length - 2;
       var bytes = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0].concat(typeSection, [2, 7, 1, 1, 101, 1, 102, 0, 0, 7, 5, 1, 1, 102, 0, 0]));
-      var module = new WebAssembly.Module(bytes);
-      var instance = new WebAssembly.Instance(module, { "e": { "f": func } });
+      var module2 = new WebAssembly.Module(bytes);
+      var instance = new WebAssembly.Instance(module2, { "e": { "f": func } });
       var wrappedFunc = instance.exports["f"];
       return wrappedFunc;
     }
@@ -150,9 +150,6 @@ var emscripten = (() => {
       }
     }
     var tempRet0 = 0;
-    var setTempRet0 = function(value) {
-      tempRet0 = value;
-    };
     var wasmBinary;
     if (Module["wasmBinary"])
       wasmBinary = Module["wasmBinary"];
@@ -518,7 +515,7 @@ var emscripten = (() => {
     }
     function createWasm() {
       var info = { "env": asmLibraryArg, "wasi_snapshot_preview1": asmLibraryArg };
-      function receiveInstance(instance, module) {
+      function receiveInstance(instance, module2) {
         var exports2 = instance.exports;
         Module["asm"] = exports2;
         wasmMemory = Module["asm"]["memory"];
@@ -626,46 +623,8 @@ var emscripten = (() => {
       wasmTable.set(idx, func);
       wasmTableMirror[idx] = func;
     }
-    function _emscripten_memcpy_big(dest, src, num) {
-      HEAPU8.copyWithin(dest, src, src + num);
-    }
-    var SYSCALLS = { mappings: {}, buffers: [null, [], []], printChar: function(stream, curr) {
-      var buffer2 = SYSCALLS.buffers[stream];
-      if (curr === 0 || curr === 10) {
-        (stream === 1 ? out : err)(UTF8ArrayToString(buffer2, 0));
-        buffer2.length = 0;
-      } else {
-        buffer2.push(curr);
-      }
-    }, varargs: void 0, get: function() {
-      SYSCALLS.varargs += 4;
-      var ret = HEAP32[SYSCALLS.varargs - 4 >> 2];
-      return ret;
-    }, getStr: function(ptr) {
-      var ret = UTF8ToString(ptr);
-      return ret;
-    }, get64: function(low, high) {
-      return low;
-    } };
-    function _fd_write(fd, iov, iovcnt, pnum) {
-      var num = 0;
-      for (var i = 0; i < iovcnt; i++) {
-        var ptr = HEAP32[iov >> 2];
-        var len = HEAP32[iov + 4 >> 2];
-        iov += 8;
-        for (var j = 0; j < len; j++) {
-          SYSCALLS.printChar(fd, HEAPU8[ptr + j]);
-        }
-        num += len;
-      }
-      HEAP32[pnum >> 2] = num;
-      return 0;
-    }
-    function _setTempRet0(val) {
-      setTempRet0(val);
-    }
     var ASSERTIONS = false;
-    var asmLibraryArg = { "emscripten_memcpy_big": _emscripten_memcpy_big, "fd_write": _fd_write, "setTempRet0": _setTempRet0 };
+    var asmLibraryArg = {};
     var asm = createWasm();
     var ___wasm_call_ctors = Module["___wasm_call_ctors"] = function() {
       return (___wasm_call_ctors = Module["___wasm_call_ctors"] = Module["asm"]["__wasm_call_ctors"]).apply(null, arguments);
@@ -684,9 +643,6 @@ var emscripten = (() => {
     };
     var stackAlloc = Module["stackAlloc"] = function() {
       return (stackAlloc = Module["stackAlloc"] = Module["asm"]["stackAlloc"]).apply(null, arguments);
-    };
-    var dynCall_jiji = Module["dynCall_jiji"] = function() {
-      return (dynCall_jiji = Module["dynCall_jiji"] = Module["asm"]["dynCall_jiji"]).apply(null, arguments);
     };
     Module["cwrap"] = cwrap;
     Module["setValue"] = setValue;
@@ -760,17 +716,28 @@ var emscripten = (() => {
 var wasm_module_default = emscripten;
 
 // index.mjs
+import module from "./build/wasm-module.wasm";
+var wasmModule = new Promise((resolve, reject) => {
+  wasm_module_default({
+    instantiateWasm(info, receiveInstance) {
+      const instance = new WebAssembly.Instance(module, info);
+      receiveInstance(instance);
+      return instance.exports;
+    },
+    locateFile(path, scriptDirectory) {
+      return path;
+    }
+  }).then((mod) => {
+    resolve({
+      myFunction: mod.cwrap("myFunction", "string")
+    });
+  }).catch((err) => console.log(err));
+});
 var workers_template_lua_default = {
   async fetch(request, env) {
-    const mod = await wasm_module_default({
-      instantiateWasm(info, receiveInstance) {
-        const instance = new WebAssembly.Instance(wasm, info);
-        receiveInstance(instance);
-        return instance.exports;
-      }
-    });
-    console.log(mod);
-    return new Response("OK");
+    const wasm = await wasmModule;
+    const d = wasm.myFunction();
+    return new Response(d);
   }
 };
 export {
