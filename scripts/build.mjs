@@ -2,7 +2,7 @@ import * as esbuild from "esbuild";
 import * as path from "path";
 import * as fs from "fs";
 
-const dist = path.join("./worker");
+const dist = path.resolve("./worker");
 
 const wasm = {
   name: 'wasm',
@@ -20,10 +20,10 @@ const wasm = {
 (async () => {
   try {
     await esbuild.build({
-      entryPoints: ['index.mjs'],
+      entryPoints: ["index.mjs"],
       bundle: true,
       format: "esm",
-      outfile: path.join(dist, 'index.mjs'),
+      outfile: path.join(dist, "index.mjs"),
       external: ["*.wasm"],
       plugins: [wasm],
     });

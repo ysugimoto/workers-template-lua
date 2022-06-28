@@ -1,0 +1,20 @@
+entry_file: hello_world.lua
+output_file: hello_world.mjs
+
+extra_args:
+  ALLOW_MEMORY_GROWTH: 1
+  DYNAMIC_EXECUTION: 0
+  TEXTDECODER: 1
+  MODULARIZE: 1
+  ENVIRONMENT: web
+  EXPORT_ES6: 1
+  EXPORT_NAME: emscripten
+  FILESYSTEM: 0
+  SINGLE_FILE: 0
+  VERBOSE: 0
+
+pre_js: ./pre.js
+
+functions:
+  hello_world:
+    return: string

@@ -1,5 +1,5 @@
-import emscripten from "./build/wasm-module.mjs";
-import module from "./build/wasm-module.wasm";
+import emscripten from "./build/hello_world.mjs";
+import module from "./build/hello_world.wasm";
 
 const wasmModule = new Promise((resolve, reject) => {
   emscripten({
@@ -11,9 +11,9 @@ const wasmModule = new Promise((resolve, reject) => {
     locateFile(path, scriptDirectory) {
       return path;
     },
-  }).then(mod => {
+  }).then(module => {
     resolve({
-      myFunction: mod.cwrap("myFunction", "string"),
+      helloWorld: module.cwrap("hello_world", "string"),
     });
   }).catch(err => console.log(err));
 });
@@ -21,7 +21,6 @@ const wasmModule = new Promise((resolve, reject) => {
 export default {
   async fetch(request, env) {
     const wasm = await wasmModule;
-    const d = wasm.myFunction();
-    return new Response(d);
+    return new Response(wasm.helloWorld());
   }
 }
