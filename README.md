@@ -24,17 +24,17 @@ This project uses wrangler v2 so install and build locally.
 If you use @cloudflare/wrangler, please take care of conflict of global installation.
 ```
 
-```shell
+```sh
 # Checkout project
-git clone https://github.com/ysugimoto/workers-template-lua.git
-cd workers-template-lua
+$ git clone https://github.com/ysugimoto/workers-template-lua.git
+$ cd workers-template-lua
 
 # Install dependencies
-yarn install
+$ yarn install
 
 # Run local worker
 # Note this project uses local installed wrangler(v2) command
-yarn wranger dev
+$ yarn wranger dev
 ```
 
 Then you can see the worker works on http://localhost:8787
